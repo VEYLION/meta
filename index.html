@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>META 🔴 - Área de Acompanhamento de Hábitos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkbg: '#0a0a0c',
+                        cardbg: '#121216',
+                        cardhover: '#1a1a22',
+                        neonred: '#ff1e56',
+                        neonredhover: '#e01448',
+                        neonborder: 'rgba(255, 30, 86, 0.3)',
+                    },
+                    boxShadow: {
+                        'neon': '0 0 20px rgba(255, 30, 86, 0.25)',
+                        'neon-lg': '0 0 35px rgba(255, 30, 86, 0.4)',
+                        'inner-glow': 'inset 0 1px 0 0 rgba(255, 255, 255, 0.05)'
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0a0a0c;
+            color: #f3f4f6;
+            overflow-x: hidden;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0a0c;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #272730;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ff1e56;
+        }
+        .glass-panel {
+            background: rgba(18, 18, 22, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 30, 86, 0.15);
+        }
+        .glow-border {
+            box-shadow: 0 0 15px rgba(255, 30, 86, 0.15);
+            border: 1px solid rgba(255, 30, 86, 0.3);
+        }
+        .glow-border:hover {
+            box-shadow: 0 0 25px rgba(255, 30, 86, 0.35);
+            border-color: rgba(255, 30, 86, 0.6);
+        }
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 0.8; }
+        }
+        .animate-pulse-glow {
+            animation: pulseGlow 3s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-darkbg text-gray-100 antialiased selection:bg-neonred selection:text-white">
+
+    <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <div class="absolute -top-40 -left-40 w-96 h-96 bg-neonred rounded-full filter blur-[120px] opacity-15 animate-pulse-glow"></div>
+        <div class="absolute top-1/3 -right-40 w-96 h-96 bg-red-900 rounded-full filter blur-[140px] opacity-10"></div>
+        <div class="absolute -bottom-40 left-1/3 w-96 h-96 bg-neonred rounded-full filter blur-[150px] opacity-10"></div>
+    </div>
+
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <header class="relative z-10 border-b border-gray-800/80 bg-darkbg/80 backdrop-blur-md sticky top-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-neonred to-red-900 flex items-center justify-center shadow-neon font-extrabold text-xl text-white tracking-wider">
+                    M
+                </div>
+                <div>
+                    <h1 class="text-xl font-extrabold tracking-tight text-white flex items-center gap-2">
+                        META <span class="text-neonred text-lg">🔴</span>
+                    </h1>
+                    <p class="text-xs text-gray-400 font-medium">Área de Acompanhamento & Hábitos</p>
+                </div>
+            </div>
+
+            <!-- Quick Profile indicator or trigger -->
+            <div class="flex items-center gap-3">
+                <button onclick="switchTab('profile')" class="flex items-center gap-2 bg-cardbg hover:bg-cardhover border border-gray-800 hover:border-neonred/50 px-3.5 py-2 rounded-xl transition-all shadow-inner-glow text-sm font-medium">
+                    <span class="text-neonred">👤</span>
+                    <span id="header-username-display" class="hidden sm:inline text-gray-200">Meu Perfil</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <nav class="relative z-10 bg-cardbg/60 border-b border-gray-800/60 sticky top-20 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex space-x-1 sm:space-x-4 overflow-x-auto py-3 no-scrollbar scroll-smooth">
+                <button onclick="switchTab('home')" id="nav-home" class="nav-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap bg-neonred text-white shadow-neon">
+                    🏠 <span>Início</span>
+                </button>
+                <button onclick="switchTab('routine')" id="nav-routine" class="nav-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap text-gray-400 hover:text-white hover:bg-cardhover">
+                    📅 <span>Rotina Diária</span>
+                </button>
+                <button onclick="switchTab('mobility')" id="nav-mobility" class="nav-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap text-gray-400 hover:text-white hover:bg-cardhover">
+                    🧘 <span>Mobilidade</span>
+                </button>
+                <button onclick="switchTab('evolution')" id="nav-evolution" class="nav-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap text-gray-400 hover:text-white hover:bg-cardhover">
+                    📈 <span>Evolução</span>
+                </button>
+                <button onclick="switchTab('achievements')" id="nav-achievements" class="nav-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap text-gray-400 hover:text-white hover:bg-cardhover">
+                    🏆 <span>Conquistas</span>
+                </button>
+                <button onclick="switchTab('profile')" id="nav-profile" class="nav-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap text-gray-400 hover:text-white hover:bg-cardhover">
+                    👤 <span>Perfil</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="relative z-10 flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- ================= TAB 1: HOME ================= -->
+        <div id="tab-home" class="tab-content space-y-8">
+            <!-- Welcome Banner & Name Setup Modal/Box -->
+            <div class="glass-panel rounded-3xl p-6 sm:p-8 relative overflow-hidden glow-border">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-neonred/20 to-transparent rounded-full filter blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 max-w-2xl">
+                    <div id="welcome-greeting-container">
+                        <!-- Filled via JS -->
+                    </div>
+                    <p class="text-gray-400 mt-2 text-sm sm:text-base leading-relaxed">
+                        Pequenas ações consistentes constroem hábitos melhores. Sua jornada começa hoje.
+                    </p>
+                    <div class="mt-6 flex flex-wrap gap-4">
+                        <button onclick="switchTab('routine')" class="bg-gradient-to-r from-neonred to-red-700 hover:from-neonredhover hover:to-red-800 text-white font-bold px-6 py-3.5 rounded-2xl shadow-neon transition-all transform hover:-translate-y-0.5 flex items-center gap-2 text-sm sm:text-base">
+                            COMEÇAR MINHA ROTINA 🚀
+                        </button>
+                        <button onclick="openNameModal()" class="bg-cardbg hover:bg-cardhover text-gray-300 hover:text-white font-semibold px-5 py-3.5 rounded-2xl border border-gray-700 transition-all text-sm sm:text-base">
+                            ✏️ Alterar Nome
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Stats Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- Streak Card -->
+                <div class="glass-panel p-6 rounded-2xl flex items-center justify-between border border-gray-800 hover:border-neonred/40 transition-all">
+                    <div>
+                        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Sequência Ativa</p>
+                        <h3 class="text-3xl font-extrabold text-white mt-1 flex items-center gap-2">
+                            <span id="stat-streak">0</span> <span class="text-neonred text-xl">🔥</span>
+                        </h3>
+                        <p class="text-xs text-gray-400 mt-1">Dias consecutivos com tarefas</p>
+                    </div>
+                    <div class="w-14 h-14 rounded-2xl bg-neonred/10 border border-neonred/30 flex items-center justify-center text-2xl text-neonred">
+                        🔥
+                    </div>
+                </div>
+
+                <!-- Completed Today Card -->
+                <div class="glass-panel p-6 rounded-2xl flex items-center justify-between border border-gray-800 hover:border-neonred/40 transition-all">
+                    <div>
+                        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Tarefas de Hoje</p>
+                        <h3 class="text-3xl font-extrabold text-white mt-1 flex items-center gap-2">
+                            <span id="stat-completed-today">0</span><span class="text-gray-500 text-lg">/8</span> <span class="text-green-400 text-xl">✅</span>
+                        </h3>
+                        <p class="text-xs text-gray-400 mt-1">Atividades realizadas</p>
+                    </div>
+                    <div class="w-14 h-14 rounded-2xl bg-green-500/10 border border-green-500/30 flex items-center justify-center text-2xl text-green-400">
+                        ✅
+                    </div>
+                </div>
+
+                <!-- Daily Progress Card -->
+                <div class="glass-panel p-6 rounded-2xl flex flex-col justify-between border border-gray-800 hover:border-neonred/40 transition-all sm:col-span-2 lg:col-span-1">
+                    <div class="flex items-center justify-between">
+                        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Progresso Diário</p>
+                        <span id="stat-progress-pct" class="text-lg font-extrabold text-neonred">0%</span>
+                    </div>
+                    <div class="w-full bg-gray-800/80 rounded-full h-3 my-3 overflow-hidden border border-gray-700/50">
+                        <div id="stat-progress-bar" class="bg-gradient-to-r from-neonred to-red-500 h-full rounded-full transition-all duration-500 w-0"></div>
+                    </div>
+                    <p class="text-xs text-gray-400">Complete as 8 atividades da sua rotina diária.</p>
+                </div>
+
+                <!-- Last Sleep Card -->
+                <div class="glass-panel p-6 rounded-2xl flex items-center justify-between border border-gray-800 hover:border-neonred/40 transition-all">
+                    <div>
+                        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Último Sono</p>
+                        <h3 class="text-2xl font-extrabold text-white mt-1" id="stat-last-sleep">Não registrado</h3>
+                        <p class="text-xs text-gray-400 mt-1" id="stat-sleep-quality">Registre seu sono hoje</p>
+                    </div>
+                    <div class="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-2xl text-indigo-400">
+                        💤
+                    </div>
+                </div>
+
+                <!-- Last Water Card -->
+                <div class="glass-panel p-6 rounded-2xl flex items-center justify-between border border-gray-800 hover:border-neonred/40 transition-all">
+                    <div>
+                        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Hidratação Hoje</p>
+                        <h3 class="text-3xl font-extrabold text-white mt-1"><span id="stat-last-water">0</span> <span class="text-sm font-normal text-gray-400">ml</span></h3>
+                        <p class="text-xs text-gray-400 mt-1">Toque para atualizar</p>
+                    </div>
+                    <div class="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-2xl text-cyan-400">
+                        💧
+                    </div>
+                </div>
+
+                <!-- Achievements Unlocked Card -->
+                <div class="glass-panel p-6 rounded-2xl flex items-center justify-between border border-gray-800 hover:border-neonred/40 transition-all">
+                    <div>
+                        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Conquistas</p>
+                        <h3 class="text-3xl font-extrabold text-white mt-1"><span id="stat-achievements-count">0</span><span class="text-gray-500 text-lg">/5</span> 🏆</h3>
+                        <p class="text-xs text-gray-400 mt-1">Desbloqueadas</p>
+                    </div>
+                    <div class="w-14 h-14 rounded-2xl bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center text-2xl text-yellow-400">
+                        🏆
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Access Shortcuts -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
+                <button onclick="switchTab('routine')" class="glass-panel p-4 rounded-2xl hover:border-neonred/50 transition-all text-left group">
+                    <span class="text-2xl">📅</span>
+                    <h4 class="font-bold text-white mt-2 group-hover:text-neonred transition-colors text-sm">Rotina Diária</h4>
+                    <p class="text-xs text-gray-400 mt-0.5">8 hábitos essenciais</p>
+                </button>
+                <button onclick="switchTab('mobility')" class="glass-panel p-4 rounded-2xl hover:border-neonred/50 transition-all text-left group">
+                    <span class="text-2xl">🧘</span>
+                    <h4 class="font-bold text-white mt-2 group-hover:text-neonred transition-colors text-sm">Mobilidade</h4>
+                    <p class="text-xs text-gray-400 mt-0.5">Postura & alongamento</p>
+                </button>
+                <button onclick="switchTab('evolution')" class="glass-panel p-4 rounded-2xl hover:border-neonred/50 transition-all text-left group">
+                    <span class="text-2xl">📈</span>
+                    <h4 class="font-bold text-white mt-2 group-hover:text-neonred transition-colors text-sm">Evolução</h4>
+                    <p class="text-xs text-gray-400 mt-0.5">Gráficos & histórico</p>
+                </button>
+                <button onclick="switchTab('achievements')" class="glass-panel p-4 rounded-2xl hover:border-neonred/50 transition-all text-left group">
+                    <span class="text-2xl">🏆</span>
+                    <h4 class="font-bold text-white mt-2 group-hover:text-neonred transition-colors text-sm">Conquistas</h4>
+                    <p class="text-xs text-gray-400 mt-0.5">Metas alcançadas</p>
+                </button>
+            </div>
+        </div>
+
+        <!-- ================= TAB 2: DAILY ROUTINE ================= -->
+        <div id="tab-routine" class="tab-content hidden space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 glass-panel p-6 rounded-2xl">
+                <div>
+                    <h2 class="text-xl sm:text-2xl font-extrabold text-white flex items-center gap-2">
+                        📅 Minha rotina de hoje
+                    </h2>
+                    <p class="text-sm text-gray-400 mt-1">
+                        Gerencie seus hábitos diários. O progresso é salvo para a data selecionada.
+                    </p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <label for="routine-date-picker" class="text-xs font-semibold text-gray-400 uppercase">Data:</label>
+                    <input type="date" id="routine-date-picker" onchange="changeRoutineDate(this.value)" class="bg-cardbg border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-neonred transition-all">
+                </div>
+            </div>
+
+            <!-- Routine Progress Mini Bar -->
+            <div class="glass-panel p-4 rounded-2xl flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">🎯</span>
+                    <div>
+                        <h4 class="text-sm font-bold text-white">Status do Dia</h4>
+                        <p class="text-xs text-gray-400" id="routine-counter-text">0 de 8 tarefas concluídas</p>
+                    </div>
+                </div>
+                <div class="w-32 sm:w-48 bg-gray-800 rounded-full h-2.5 overflow-hidden">
+                    <div id="routine-mini-bar" class="bg-neonred h-full rounded-full transition-all duration-300 w-0"></div>
+                </div>
+            </div>
+
+            <!-- 8 Tasks List Container -->
+            <div id="tasks-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Rendered dynamically by JS -->
+            </div>
+        </div>
+
+        <!-- ================= TAB 3: MOBILITY & POSTURE ================= -->
+        <div id="tab-mobility" class="tab-content hidden space-y-6">
+            <div class="glass-panel p-6 rounded-2xl">
+                <h2 class="text-xl sm:text-2xl font-extrabold text-white flex items-center gap-2">
+                    🧘 Mobilidade e Postura
+                </h2>
+                <p class="text-sm text-gray-400 mt-1">
+                    Exercícios leves de mobilidade, postura e relaxamento. Interrompa imediatamente se sentir qualquer dor ou desconforto.
+                </p>
+            </div>
+
+            <div id="mobility-container" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <!-- Rendered dynamically by JS -->
+            </div>
+        </div>
+
+        <!-- ================= TAB 4: EVOLUTION ================= -->
+        <div id="tab-evolution" class="tab-content hidden space-y-6">
+            <div class="glass-panel p-6 rounded-2xl">
+                <h2 class="text-xl sm:text-2xl font-extrabold text-white flex items-center gap-2">
+                    📈 Minha evolução
+                </h2>
+                <p class="text-sm text-gray-400 mt-1">
+                    Acompanhe suas estatísticas consolidadas e histórico de registros armazenados localmente.
+                </p>
+            </div>
+
+            <!-- Evolution Stats Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="glass-panel p-5 rounded-2xl">
+                    <p class="text-xs font-semibold text-gray-400 uppercase">Total de Tarefas</p>
+                    <h3 class="text-2xl font-extrabold text-white mt-1" id="evo-total-tasks">0</h3>
+                    <p class="text-xs text-gray-500 mt-1">Concluídas no total</p>
+                </div>
+                <div class="glass-panel p-5 rounded-2xl">
+                    <p class="text-xs font-semibold text-gray-400 uppercase">Sequência Atual</p>
+                    <h3 class="text-2xl font-extrabold text-white mt-1" id="evo-streak">0 dias</h3>
+                    <p class="text-xs text-gray-500 mt-1">Consistência recente</p>
+                </div>
+                <div class="glass-panel p-5 rounded-2xl">
+                    <p class="text-xs font-semibold text-gray-400 uppercase">Melhor Sequência</p>
+                    <h3 class="text-2xl font-extrabold text-white mt-1" id="evo-best-streak">0 dias</h3>
+                    <p class="text-xs text-gray-500 mt-1">Recorde pessoal</p>
+                </div>
+                <div class="glass-panel p-5 rounded-2xl">
+                    <p class="text-xs font-semibold text-gray-400 uppercase">Média de Sono</p>
+                    <h3 class="text-2xl font-extrabold text-white mt-1" id="evo-avg-sleep">0h</h3>
+                    <p class="text-xs text-gray-500 mt-1">Últimos registros</p>
+                </div>
+            </div>
+
+            <!-- Activity Consistency & Sleep/Water History -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Recent Sleep Logs History -->
+                <div class="glass-panel p-6 rounded-2xl space-y-4">
+                    <h3 class="text-lg font-bold text-white flex items-center gap-2">💤 Histórico de Sono Recente</h3>
+                    <div id="evo-sleep-history-list" class="space-y-3">
+                        <p class="text-sm text-gray-400">Nenhum registro de sono encontrado ainda.</p>
+                    </div>
+                </div>
+
+                <!-- Recent Water Logs History -->
+                <div class="glass-panel p-6 rounded-2xl space-y-4">
+                    <h3 class="text-lg font-bold text-white flex items-center gap-2">💧 Histórico de Hidratação Recente</h3>
+                    <div id="evo-water-history-list" class="space-y-3">
+                        <p class="text-sm text-gray-400">Nenhum registro de hidratação encontrado ainda.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TAB 5: ACHIEVEMENTS ================= -->
+        <div id="tab-achievements" class="tab-content hidden space-y-6">
+            <div class="glass-panel p-6 rounded-2xl">
+                <h2 class="text-xl sm:text-2xl font-extrabold text-white flex items-center gap-2">
+                    🏆 Conquistas
+                </h2>
+                <p class="text-sm text-gray-400 mt-1">
+                    Desbloqueie troféus mantendo seus hábitos e consistência diária.
+                </p>
+            </div>
+
+            <div id="achievements-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- Rendered dynamically by JS -->
+            </div>
+        </div>
+
+        <!-- ================= TAB 6: PROFILE ================= -->
+        <div id="tab-profile" class="tab-content hidden space-y-6">
+            <div class="glass-panel p-6 rounded-2xl">
+                <h2 class="text-xl sm:text-2xl font-extrabold text-white flex items-center gap-2">
+                    👤 Meu Perfil Pessoal
+                </h2>
+                <p class="text-sm text-gray-400 mt-1">
+                    Configure suas informações pessoais, metas e horários. Os dados ficam salvos apenas neste navegador.
+                </p>
+            </div>
+
+            <div class="glass-panel p-6 sm:p-8 rounded-2xl max-w-3xl mx-auto space-y-6">
+                <form id="profile-form" onsubmit="saveProfile(event)" class="space-y-5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 uppercase mb-2">Seu Nome</label>
+                            <input type="text" id="profile-name" placeholder="Ex: João Silva" class="w-full bg-cardbg border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-neonred transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 uppercase mb-2">Idade ou Faixa Etária</label>
+                            <input type="text" id="profile-age" placeholder="Ex: 22 anos ou 18-25" class="w-full bg-cardbg border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-neonred transition-all">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 uppercase mb-2">Altura atual (cm) - Opcional</label>
+                            <input type="number" id="profile-height" placeholder="Ex: 175" class="w-full bg-cardbg border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-neonred transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 uppercase mb-2">Peso atual (kg) - Opcional</label>
+                            <input type="number" step="0.1" id="profile-weight" placeholder="Ex: 70.5" class="w-full bg-cardbg border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-neonred transition-all">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 uppercase mb-2">Objetivos Pessoais</label>
+                        <textarea id="profile-goals" rows="3" placeholder="Ex: Manter constância em hábitos saudáveis, melhorar sono e postura." class="w-full bg-cardbg border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-neonred transition-all resize-none"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 uppercase mb-2">Horário habitual de dormir</label>
+                            <input type="time" id="profile-sleep-time" class="w-full bg-cardbg border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-neonred transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 uppercase mb-2">Horário habitual de acordar</label>
+                            <input type="time" id="profile-wake-time" class="w-full bg-cardbg border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-neonred transition-all">
+                        </div>
+                    </div>
+
+                    <div class="pt-4 flex items-center justify-between">
+                        <button type="submit" class="bg-gradient-to-r from-neonred to-red-700 hover:from-neonredhover hover:to-red-800 text-white font-bold px-6 py-3.5 rounded-xl shadow-neon transition-all text-sm">
+                            💾 Salvar Perfil
+                        </button>
+                        <button type="button" onclick="clearAllData()" class="text-red-400 hover:text-red-300 text-xs font-semibold transition-colors">
+                            ⚠️ Apagar todos os dados
+                        </button>
+                    </div>
+                </form>
+
+                <div class="border-t border-gray-800 pt-5 mt-5">
+                    <p class="text-xs text-gray-500 leading-relaxed">
+                        🔒 <strong class="text-gray-400">Privacidade e Armazenamento Local:</strong> Todos os seus dados são gravados exclusivamente no armazenamento local (<code class="text-neonred">localStorage</code>) do seu navegador. Nenhum dado é enviado para servidores externos. Lembre-se de que limpar os dados do navegador ou trocar de aparelho removerá o histórico salvo.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+
+    <!-- Modal: Sleep Check-in -->
+    <div id="modal-sleep" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden">
+        <div class="glass-panel w-full max-w-lg rounded-3xl p-6 sm:p-8 relative glow-border animate-in fade-in zoom-in duration-200">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-extrabold text-white flex items-center gap-2">💤 Registrar Horas de Sono</h3>
+                <button onclick="closeModal('modal-sleep')" class="text-gray-400 hover:text-white p-2 rounded-xl bg-cardbg border border-gray-800">✕</button>
+            </div>
+            <form onsubmit="saveSleep(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 uppercase mb-2">Quantas horas você dormiu?</label>
+                    <input type="number" step="0.5" id="sleep-hours" required placeholder="Ex: 7.5" class="w-full bg-cardbg border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-neonred">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 uppercase mb-2">Horário que foi dormir</label>
+                        <input type="time" id="sleep-bedtime" class="w-full bg-cardbg border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-neonred">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 uppercase mb-2">Horário que acordou</label>
+                        <input type="time" id="sleep-waketime" class="w-full bg-cardbg border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-neonred">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 uppercase mb-2">Qualidade do sono</label>
+                    <select id="sleep-quality" class="w-full bg-cardbg border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-neonred">
+                        <option value="Ruim">Ruim</option>
+                        <option value="Regular">Regular</option>
+                        <option value="Boa" selected>Boa</option>
+                        <option value="Excelente">Excelente</option>
+                    </select>
+                </div>
+                <div class="pt-4 flex justify-end gap-3">
+                    <button type="button" onclick="closeModal('modal-sleep')" class="px-5 py-3 rounded-xl bg-cardbg border border-gray-700 text-sm font-semibold text-gray-300 hover:text-white">Cancelar</button>
+                    <button type="submit" class="px-6 py-3 rounded-xl bg-gradient-to-r from-neonred to-red-700 hover:from-neonredhover text-sm font-bold text-white shadow-neon">Salvar Registro</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Food Check-in -->
+    <div id="modal-food" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden">
+        <div class="glass-panel w-full max-w-lg rounded-3xl p-6 sm:p-8 relative glow-border">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-extrabold text-white flex items-center gap-2">🥗 Check-in de Alimentação</h3>
+                <button onclick="closeModal('modal-food')" class="text-gray-400 hover:text-white p-2 rounded-xl bg-cardbg border border-gray-800">✕</button>
+            </div>
+            <form onsubmit="saveFood(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-200 mb-2">1. Você fez refeições regulares hoje?</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="flex items-center gap-2 p-3 rounded-xl bg-cardbg border border-gray-700 cursor-pointer hover:border-neonred">
+                            <input type="radio" name="food-reg" value="Sim" checked class="text-neonred focus:ring-neonred"> Sim, refeições nos horários habituais
+                        </label>
+                        <label class="flex items-center gap-2 p-3 rounded-xl bg-cardbg border border-gray-700 cursor-pointer hover:border-neonred">
+                            <input type="radio" name="food-reg" value="Não" class="text-neonred focus:ring-neonred"> Não muito regulares hoje
+                        </label>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-200 mb-2">2. Sua alimentação teve variedade de alimentos?</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="flex items-center gap-2 p-3 rounded-xl bg-cardbg border border-gray-700 cursor-pointer hover:border-neonred">
+                            <input type="radio" name="food-var" value="Sim" checked class="text-neonred focus:ring-neonred"> Boa variedade
+                        </label>
+                        <label class="flex items-center gap-2 p-3 rounded-xl bg-cardbg border border-gray-700 cursor-pointer hover:border-neonred">
+                            <input type="radio" name="food-var" value="Não" class="text-neonred focus:ring-neonred"> Alimentação monótona
+                        </label>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-200 mb-2">3. Você comeu frutas ou verduras?</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="flex items-center gap-2 p-3 rounded-xl bg-cardbg border border-gray-700 cursor-pointer hover:border-neonred">
+                            <input type="radio" name="food-veg" value="Sim" checked class="text-neonred focus:ring-neonred"> Sim, consumi
+                        </label>
+                        <label class="flex items-center gap-2 p-3 rounded-xl bg-cardbg border border-gray-700 cursor-pointer hover:border-neonred">
+                            <input type="radio" name="food-veg" value="Não" class="text-neonred focus:ring-neonred"> Não hoje
+                        </label>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 uppercase mb-2">Observações (opcional)</label>
+                    <textarea id="food-notes" rows="2" placeholder="Como você se sentiu com sua alimentação hoje?" class="w-full bg-cardbg border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-neonred resize-none"></textarea>
+                </div>
+                <div class="pt-4 flex justify-end gap-3">
+                    <button type="button" onclick="closeModal('modal-food')" class="px-5 py-3 rounded-xl bg-cardbg border border-gray-700 text-sm font-semibold text-gray-300">Cancelar</button>
+                    <button type="submit" class="px-6 py-3 rounded-xl bg-gradient-to-r from-neonred to-red-700 text-sm font-bold text-white shadow-neon">Salvar Check-in</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Water Check-in -->
+    <div id="modal-water" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden">
+        <div class="glass-panel w-full max-w-md rounded-3xl p-6 sm:p-8 relative glow-border text-center">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-extrabold text-white flex items-center gap-2">💧 Hidratação Diária</h3>
+                <button onclick="closeModal('modal-water')" class="text-gray-400 hover:text-white p-2 rounded-xl bg-cardbg border border-gray-800">✕</button>
+            </div>
+            <div class="py-6">
+                <span class="text-5xl font-extrabold text-cyan-400" id="water-modal-total">0</span>
+                <span class="text-gray-400 text-lg ml-1">ml</span>
+                <p class="text-xs text-gray-400 mt-2">Adicione água consumida hoje</p>
+            </div>
+            <div class="grid grid-cols-3 gap-3 mb-6">
+                <button onclick="addWater(250)" class="bg-cardbg hover:bg-cardhover border border-gray-700 hover:border-cyan-400 p-3 rounded-xl font-bold text-cyan-400 text-sm transition-all">+250 ml</button>
+                <button onclick="addWater(500)" class="bg-cardbg hover:bg-cardhover border border-gray-700 hover:border-cyan-400 p-3 rounded-xl font-bold text-cyan-400 text-sm transition-all">+500 ml</button>
+                <button onclick="addWater(750)" class="bg-cardbg hover:bg-cardhover border border-gray-700 hover:border-cyan-400 p-3 rounded-xl font-bold text-cyan-400 text-sm transition-all">+750 ml</button>
+            </div>
+            <div class="flex items-center justify-between gap-3">
+                <button onclick="resetWater()" class="w-full py-3 rounded-xl bg-cardbg border border-red-500/30 text-red-400 text-sm font-semibold hover:bg-red-500/10">Zerar Dia</button>
+                <button onclick="closeModal('modal-water')" class="w-full py-3 rounded-xl bg-gradient-to-r from-neonred to-red-700 text-white font-bold text-sm shadow-neon">Concluir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Physical Activity -->
+    <div id="modal-activity" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden">
+        <div class="glass-panel w-full max-w-lg rounded-3xl p-6 sm:p-8 relative glow-border">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-extrabold text-white flex items-center gap-2">🏃 Registrar Atividade Física</h3>
+                <button onclick="closeModal('modal-activity')" class="text-gray-400 hover:text-white p-2 rounded-xl bg-cardbg border border-gray-800">✕</button>
+            </div>
+            <form onsubmit="saveActivity(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 uppercase mb-2">Tipo de Atividade</label>
+                    <input type="text" id="act-type" required placeholder="Ex: Corrida, Caminhada, Musculação, Funcional" class="w-full bg-cardbg border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-neonred">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 uppercase mb-2">Duração (minutos)</label>
+                    <input type="number" id="act-duration" required placeholder="Ex: 30" class="w-full bg-cardbg border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-neonred">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 uppercase mb-2">Como foi o treino?</label>
+                    <textarea id="act-notes" rows="2" placeholder="Observações sobre seu desempenho ou energia" class="w-full bg-cardbg border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-neonred resize-none"></textarea>
+                </div>
+                <div class="pt-4 flex justify-end gap-3">
+                    <button type="button" onclick="closeModal('modal-activity')" class="px-5 py-3 rounded-xl bg-cardbg border border-gray-700 text-sm font-semibold text-gray-300">Cancelar</button>
+                    <button type="submit" class="px-6 py-3 rounded-xl bg-gradient-to-r from-neonred to-red-700 text-sm font-bold text-white shadow-neon">Salvar Atividade</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Name Setup -->
+    <div id="modal-name" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md hidden">
+        <div class="glass-panel w-full max-w-md rounded-3xl p-6 sm:p-8 relative glow-border text-center">
+            <h3 class="text-2xl font-extrabold text-white mb-2">Bem-vindo ao META 🔴</h3>
+            <p class="text-sm text-gray-400 mb-6">Como gostaria de ser chamado na sua jornada?</p>
+            <form onsubmit="saveNamePrompt(event)" class="space-y-4">
+                <input type="text" id="prompt-name-input" required placeholder="Digite seu nome ou apelido" class="w-full bg-cardbg border border-gray-700 rounded-xl px-4 py-3.5 text-sm text-white text-center focus:outline-none focus:border-neonred font-semibold text-lg">
+                <button type="submit" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-neonred to-red-700 hover:from-neonredhover text-white font-bold text-base shadow-neon">Começar Minha Jornada 🚀</button>
+            </form>
+        </div>
+    </div>
+
+    <footer class="relative z-10 border-t border-gray-800/80 bg-darkbg/95 py-8 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-3">
+            <p class="text-sm font-bold text-gray-300 flex items-center justify-center gap-2">
+                META <span class="text-neonred">🔴</span> — Plataforma de Acompanhamento de Hábitos
+            </p>
+            <p class="text-xs text-gray-500 max-w-xl mx-auto leading-relaxed">
+                Este sistema destina-se ao registro pessoal de hábitos saudáveis e rotinas de desenvolvimento físico. Não constitui aconselhamento médico ou nutricional profissional.
+            </p>
+            <p class="text-xs text-gray-600">© 2026 META. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- DATA STRUCTURES & STATE ---
+        const TASKS_DEFINITION = [
+            { id: 1, name: 'Registrar horas de sono', desc: 'Informe quanto dormiu e qualidade', emoji: '💤', modal: 'modal-sleep' },
+            { id: 2, name: 'Check-in de alimentação', desc: 'Avalie suas refeições e variedade', emoji: '🥗', modal: 'modal-food' },
+            { id: 3, name: 'Registrar hidratação', desc: 'Controle a quantidade de água do dia', emoji: '💧', modal: 'modal-water' },
+            { id: 4, name: 'Atividade física do dia', desc: 'Registre caminhada, treino ou esporte', emoji: '🏃', modal: 'modal-activity' },
+            { id: 5, name: 'Mobilidade leve', desc: 'Realize movimentos suaves para flexibilidade', emoji: '🧘', tab: 'mobility' },
+            { id: 6, name: 'Hábitos de postura', desc: 'Consciência corporal e pausas na rotina', emoji: '🪑', action: 'toggleTaskDirect' },
+            { id: 7, name: 'Rotina relaxante para dormir', desc: 'Desligue telas e prepare-se para descansar', emoji: '🌙', action: 'toggleTaskDirect' },
+            { id: 8, name: 'Check-in de bem-estar', desc: 'Avalie sua energia e disposição do dia', emoji: '📝', action: 'toggleTaskDirect' }
+        ];
+
+        const MOBILITY_EXERCISES = [
+            {
+                id: 'mob-1',
+                name: 'Mobilidade Suave de Ombros',
+                goal: 'Soltar a tensão acumulada na região superior dos ombros.',
+                steps: ['Em pé ou sentado confortavelmente, mantenha a coluna reta.', 'Faça círculos lentos com os ombros para trás 10 vezes.', 'Inverta o sentido e faça mais 10 círculos para frente.'],
+                time: '2 minutos',
+                precautions: 'Não force movimentos caso sinta rigidez excessiva.'
+            },
+            {
+                id: 'mob-2',
+                name: 'Movimentos Confortáveis de Pescoço',
+                goal: 'Aliviar a rigidez cervical decorrente de longos períodos sentado.',
+                steps: ['Incline suavemente a orelha em direção ao ombro, sem forçar.', 'Gire a cabeça de forma lenta e controlada em meia-lua.', 'Respire profundamente durante todo o movimento.'],
+                time: '2 minutos',
+                precautions: 'Evite giros completos rápidos ou trações forçadas.'
+            },
+            {
+                id: 'mob-3',
+                name: 'Mobilidade Torácica Suave',
+                goal: 'Melhorar a flexibilidade da coluna torácica e postura.',
+                steps: ['Abra os braços lateralmente em formato de cruz.', 'Gire levemente o tronco para a esquerda e para a direita de forma fluida.', 'Mantenha o abdômen levemente contraído.'],
+                time: '3 minutos',
+                precautions: 'Interrompa imediatamente se sentir dor na coluna.'
+            },
+            {
+                id: 'mob-4',
+                name: 'Alongamento Confortável de Panturrilhas',
+                goal: 'Relaxar a musculatura das pernas após o dia.',
+                steps: ['Apoie as mãos na parede e afaste um pé para trás.', 'Mantenha o calcanhar traseiro no chão e o joelho esticado.', 'Sinta um alongamento suave na panturrilha por 20 segundos em cada perna.'],
+                time: '2 minutos',
+                precautions: 'Não estique além do ponto de conforto.'
+            },
+            {
+                id: 'mob-5',
+                name: 'Alongamento Leve Posterior das Pernas',
+                goal: 'Aliviar a tensão nos posteriores da coxa.',
+                steps: ['Sente-se com as pernas estendidas de forma relaxada.', 'Incline levemente o tronco à frente a partir do quadril.', 'Mantenha a respiração calma e natural.'],
+                time: '3 minutos',
+                precautions: 'Respeite seu limite de flexibilidade.'
+            },
+            {
+                id: 'mob-6',
+                name: 'Pausas para Mudar de Posição',
+                goal: 'Evitar rigidez por tempo prolongado na mesma posição.',
+                steps: ['A cada 60 minutos sentado, levante-se por 2 minutos.', 'Faça alguns passos leves pelo ambiente.', 'Beba alguns goles de água.'],
+                time: '2 minutos por hora',
+                precautions: 'Essencial para circulação e bem-estar.'
+            },
+            {
+                id: 'mob-7',
+                name: 'Consciência Postural Básica',
+                goal: 'Alinhamento corporal natural ao caminhar ou sentar.',
+                steps: ['Alinhe os ombros para trás e para baixo.', 'Mantenha o olhar na linha do horizonte.', 'Distribua o peso igualmente nos dois pés.'],
+                time: '1 minuto',
+                precautions: 'Pratique com suavidade.'
+            }
+        ];
+
+        // --- APP STATE GETTERS / SETTERS ---
+        function getTodayDateString() {
+            const now = new Date();
+            return now.toISOString().split('T')[0];
+        }
+
+        let currentRoutineDate = getTodayDateString();
+
+        function loadAppData() {
+            return {
+                userName: localStorage.getItem('meta_user_name') || '',
+                profile: JSON.parse(localStorage.getItem('meta_profile') || '{}'),
+                completedTasks: JSON.parse(localStorage.getItem('meta_completed_tasks') || '{}'), // { 'YYYY-MM-DD': [1, 2, 3] }
+                sleepLogs: JSON.parse(localStorage.getItem('meta_sleep_logs') || '{}'), // { 'YYYY-MM-DD': { hours, bedtime, waketime, quality } }
+                waterLogs: JSON.parse(localStorage.getItem('meta_water_logs') || '{}'), // { 'YYYY-MM-DD': totalMl }
+                activityLogs: JSON.parse(localStorage.getItem('meta_activity_logs') || '{}'), // { 'YYYY-MM-DD': [{type, duration, notes}] }
+                mobilityDone: JSON.parse(localStorage.getItem('meta_mobility_done') || '{}'), // { 'YYYY-MM-DD': ['mob-1'] }
+                achievements: JSON.parse(localStorage.getItem('meta_achievements') || '[]')
+            };
+        }
+
+        function saveAppData(data) {
+            if (data.userName !== undefined) localStorage.setItem('meta_user_name', data.userName);
+            if (data.profile) localStorage.setItem('meta_profile', JSON.stringify(data.profile));
+            if (data.completedTasks) localStorage.setItem('meta_completed_tasks', JSON.stringify(data.completedTasks));
+            if (data.sleepLogs) localStorage.setItem('meta_sleep_logs', JSON.stringify(data.sleepLogs));
+            if (data.waterLogs) localStorage.setItem('meta_water_logs', JSON.stringify(data.waterLogs));
+            if (data.activityLogs) localStorage.setItem('meta_activity_logs', JSON.stringify(data.activityLogs));
+            if (data.mobilityDone) localStorage.setItem('meta_mobility_done', JSON.stringify(data.mobilityDone));
+            if (data.achievements) localStorage.setItem('meta_achievements', JSON.stringify(data.achievements));
+        }
+
+        // --- TOAST NOTIFICATIONS ---
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `px-5 py-3 rounded-2xl glass-panel text-sm font-bold text-white shadow-lg pointer-events-auto transform translate-y-2 opacity-0 transition-all duration-300 flex items-center gap-3 ${type === 'success' ? 'border-neonred/50 text-neonred' : 'border-gray-700'}`;
+            toast.innerHTML = `<span>${type === 'success' ? '🔴' : 'ℹ️'}</span> <span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // --- TAB NAVIGATION ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-neonred', 'text-white', 'shadow-neon');
+                btn.classList.add('text-gray-400', 'hover:text-white', 'hover:bg-cardhover');
+            });
+
+            const targetTab = document.getElementById(`tab-${tabId}`);
+            const targetBtn = document.getElementById(`nav-${tabId}`);
+
+            if (targetTab) targetTab.classList.remove('hidden');
+            if (targetBtn) {
+                targetBtn.classList.remove('text-gray-400', 'hover:text-white', 'hover:bg-cardhover');
+                targetBtn.classList.add('bg-neonred', 'text-white', 'shadow-neon');
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            // Refresh tab specific renders
+            if (tabId === 'home') renderDashboard();
+            if (tabId === 'routine') renderRoutine();
+            if (tabId === 'mobility') renderMobility();
+            if (tabId === 'evolution') renderEvolution();
+            if (tabId === 'achievements') renderAchievements();
+            if (tabId === 'profile') renderProfileForm();
+        }
+
+        // --- INITIALIZATION & USER NAME ---
+        window.addEventListener('DOMContentLoaded', () => {
+            const data = loadAppData();
+            if (!data.userName) {
+                document.getElementById('modal-name').classList.remove('hidden');
+            } else {
+                updateWelcomeBanner(data.userName);
+            }
+
+            document.getElementById('routine-date-picker').value = currentRoutineDate;
+            renderDashboard();
+            checkAndAwardAchievements();
+        });
+
+        function openNameModal() {
+            const data = loadAppData();
+            document.getElementById('prompt-name-input').value = data.userName || '';
+            document.getElementById('modal-name').classList.remove('hidden');
+        }
+
+        function saveNamePrompt(e) {
+            e.preventDefault();
+            const name = document.getElementById('prompt-name-input').value.trim();
+            if (!name) return;
+            const data = loadAppData();
+            data.userName = name;
+            saveAppData(data);
+            document.getElementById('modal-name').classList.add('hidden');
+            updateWelcomeBanner(name);
+            showToast(`Bem-vindo, ${name}! Seu perfil foi atualizado.`);
+        }
+
+        function updateWelcomeBanner(name) {
+            const container = document.getElementById('welcome-greeting-container');
+            const headerDisplay = document.getElementById('header-username-display');
+            if (headerDisplay) headerDisplay.textContent = name;
+
+            container.innerHTML = `
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-white">
+                    Olá, ${name}! 👋 Vamos cuidar dos seus hábitos hoje?
+                </h2>
+            `;
+        }
+
+        // --- DASHBOARD RENDER ---
+        function renderDashboard() {
+            const data = loadAppData();
+            const today = getTodayDateString();
+
+            // Completed today
+            const todayTasks = data.completedTasks[today] || [];
+            const completedCount = todayTasks.length;
+            const progressPct = Math.round((completedCount / 8) * 100);
+
+            document.getElementById('stat-completed-today').textContent = completedCount;
+            document.getElementById('stat-progress-pct').textContent = `${progressPct}%`;
+            document.getElementById('stat-progress-bar').style.width = `${progressPct}%`;
+
+            // Streak calculation
+            let streak = calculateCurrentStreak(data.completedTasks);
+            document.getElementById('stat-streak').textContent = streak;
+
+            // Last sleep
+            const sleepObj = data.sleepLogs[today] || getLastLog(data.sleepLogs);
+            if (sleepObj) {
+                document.getElementById('stat-last-sleep').textContent = `${sleepObj.hours} horas`;
+                document.getElementById('stat-sleep-quality').textContent = `Qualidade: ${sleepObj.quality}`;
+            } else {
+                document.getElementById('stat-last-sleep').textContent = 'Não registrado';
+                document.getElementById('stat-sleep-quality').textContent = 'Registre seu sono hoje';
+            }
+
+            // Last water
+            const waterToday = data.waterLogs[today] || 0;
+            document.getElementById('stat-last-water').textContent = waterToday;
+
+            // Achievements count
+            const unlockedCount = (data.achievements || []).length;
+            document.getElementById('stat-achievements-count').textContent = unlockedCount;
+
+            if (!data.userName) {
+                updateWelcomeBanner('Visitante');
+            } else {
+                updateWelcomeBanner(data.userName);
+            }
+        }
+
+        function getLastLog(logsObj) {
+            const keys = Object.keys(logsObj).sort();
+            if (keys.length === 0) return null;
+            return logsObj[keys[keys.length - 1]];
+        }
+
+        function calculateCurrentStreak(completedTasksMap) {
+            let streak = 0;
+            let d = new Date();
+            while (true) {
+                const dateStr = d.toISOString().split('T')[0];
+                const tasks = completedTasksMap[dateStr] || [];
+                if (tasks.length > 0) {
+                    streak++;
+                    d.setDate(d.getDate() - 1);
+                } else {
+                    // Check if today has no tasks yet, check yesterday before breaking
+                    if (dateStr === getTodayDateString()) {
+                        d.setDate(d.getDate() - 1);
+                        const yesterdayStr = d.toISOString().split('T')[0];
+                        if ((completedTasksMap[yesterdayStr] || []).length > 0) {
+                            continue;
+                        }
+                    }
+                    break;
+                }
+            }
+            return streak;
+        }
+
+        // --- ROUTINE RENDER & ACTIONS ---
+        function changeRoutineDate(dateStr) {
+            if (!dateStr) return;
+            currentRoutineDate = dateStr;
+            renderRoutine();
+        }
+
+        function renderRoutine() {
+            const data = loadAppData();
+            const container = document.getElementById('tasks-container');
+            container.innerHTML = '';
+
+            const todayTasks = data.completedTasks[currentRoutineDate] || [];
+            const completedCount = todayTasks.length;
+            const progressPct = Math.round((completedCount / 8) * 100);
+
+            document.getElementById('routine-counter-text').textContent = `${completedCount} de 8 tarefas concluídas`;
+            document.getElementById('routine-mini-bar').style.width = `${progressPct}%`;
+
+            TASKS_DEFINITION.forEach(task => {
+                const isCompleted = todayTasks.includes(task.id);
+                const card = document.createElement('div');
+                card.className = `glass-panel p-5 rounded-2xl flex items-center justify-between border transition-all ${isCompleted ? 'border-green-500/40 bg-green-500/5' : 'border-gray-800 hover:border-neonred/40'}`;
+                
+                card.innerHTML = `
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${isCompleted ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-cardbg text-gray-300 border border-gray-700'}">
+                            ${task.emoji}
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-white text-base ${isCompleted ? 'line-through text-gray-400' : ''}">${task.name}</h4>
+                            <p class="text-xs text-gray-400 mt-0.5">${task.desc}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="handleTaskAction(${task.id})" class="px-4 py-2.5 rounded-xl font-semibold text-xs transition-all ${isCompleted ? 'bg-cardbg border border-gray-700 text-gray-300 hover:bg-gray-800' : 'bg-gradient-to-r from-neonred to-red-700 text-white shadow-neon hover:from-neonredhover'}">
+                            ${isCompleted ? 'Desfazer' : 'Realizar ➔'}
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function handleTaskAction(taskId) {
+            const data = loadAppData();
+            if (!data.completedTasks[currentRoutineDate]) {
+                data.completedTasks[currentRoutineDate] = [];
+            }
+
+            const taskDef = TASKS_DEFINITION.find(t => t.id === taskId);
+            const isCompleted = data.completedTasks[currentRoutineDate].includes(taskId);
+
+            if (isCompleted) {
+                // Unmark
+                data.completedTasks[currentRoutineDate] = data.completedTasks[currentRoutineDate].filter(id => id !== taskId);
+                saveAppData(data);
+                renderRoutine();
+                showToast('Tarefa desmarcada.');
+            } else {
+                // If task has specific modal or tab
+                if (taskDef.modal) {
+                    openModal(taskDef.modal);
+                    // Also mark as complete when modal action finishes or directly
+                } else if (taskDef.tab) {
+                    switchTab(taskDef.tab);
+                } else {
+                    // Direct complete
+                    data.completedTasks[currentRoutineDate].push(taskId);
+                    saveAppData(data);
+                    renderRoutine();
+                    showToast('Tarefa concluída! 🎉');
+                    checkAndAwardAchievements();
+                }
+            }
+        }
+
+        // --- MODAL CONTROLS ---
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.remove('hidden');
+            if (modalId === 'modal-water') {
+                const data = loadAppData();
+                const today = currentRoutineDate;
+                document.getElementById('water-modal-total').textContent = data.waterLogs[today] || 0;
+            }
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        // --- CHECK-IN SAVERS ---
+        function saveSleep(e) {
+            e.preventDefault();
+            const hours = parseFloat(document.getElementById('sleep-hours').value);
+            const bedtime = document.getElementById('sleep-bedtime').value;
+            const waketime = document.getElementById('sleep-waketime').value;
+            const quality = document.getElementById('sleep-quality').value;
+
+            const data = loadAppData();
+            data.sleepLogs[currentRoutineDate] = { hours, bedtime, waketime, quality };
+
+            // Mark task 1 as complete
+            if (!data.completedTasks[currentRoutineDate]) data.completedTasks[currentRoutineDate] = [];
+            if (!data.completedTasks[currentRoutineDate].includes(1)) {
+                data.completedTasks[currentRoutineDate].push(1);
+            }
+
+            saveAppData(data);
+            closeModal('modal-sleep');
+            renderRoutine();
+            showToast('Sono registrado com sucesso! 💤');
+            checkAndAwardAchievements();
+        }
+
+        function saveFood(e) {
+            e.preventDefault();
+            const data = loadAppData();
+            if (!data.completedTasks[currentRoutineDate]) data.completedTasks[currentRoutineDate] = [];
+            if (!data.completedTasks[currentRoutineDate].includes(2)) {
+                data.completedTasks[currentRoutineDate].push(2);
+            }
+            saveAppData(data);
+            closeModal('modal-food');
+            renderRoutine();
+            showToast('Check-in de alimentação salvo! 🥗');
+            checkAndAwardAchievements();
+        }
+
+        function addWater(amount) {
+            const data = loadAppData();
+            const today = currentRoutineDate;
+            if (!data.waterLogs[today]) data.waterLogs[today] = 0;
+            data.waterLogs[today] += amount;
+
+            // Mark task 3 as complete if water >= 1500ml or just added
+            if (!data.completedTasks[today]) data.completedTasks[today] = [];
+            if (!data.completedTasks[today].includes(3)) {
+                data.completedTasks[today].push(3);
+            }
+
+            saveAppData(data);
+            document.getElementById('water-modal-total').textContent = data.waterLogs[today];
+            showToast(`Adicionado ${amount}ml de água! 💧`);
+            checkAndAwardAchievements();
+        }
+
+        function resetWater() {
+            const data = loadAppData();
+            const today = currentRoutineDate;
+            data.waterLogs[today] = 0;
+            saveAppData(data);
+            document.getElementById('water-modal-total').textContent = 0;
+            showToast('Hidratação zerada para o dia.');
+        }
+
+        function saveActivity(e) {
+            e.preventDefault();
+            const type = document.getElementById('act-type').value;
+            const duration = document.getElementById('act-duration').value;
+            const notes = document.getElementById('act-notes').value;
+
+            const data = loadAppData();
+            if (!data.activityLogs[currentRoutineDate]) data.activityLogs[currentRoutineDate] = [];
+            data.activityLogs[currentRoutineDate].push({ type, duration, notes });
+
+            if (!data.completedTasks[currentRoutineDate]) data.completedTasks[currentRoutineDate] = [];
+            if (!data.completedTasks[currentRoutineDate].includes(4)) {
+                data.completedTasks[currentRoutineDate].push(4);
+            }
+
+            saveAppData(data);
+            closeModal('modal-activity');
+            renderRoutine();
+            showToast('Atividade física registrada! 🏃');
+            checkAndAwardAchievements();
+        }
+
+        // --- MOBILITY & POSTURE RENDER ---
+        function renderMobility() {
+            const data = loadAppData();
+            const container = document.getElementById('mobility-container');
+            container.innerHTML = '';
+
+            const doneList = data.mobilityDone[currentRoutineDate] || [];
+
+            MOBILITY_EXERCISES.forEach(ex => {
+                const isDone = doneList.includes(ex.id);
+                const card = document.createElement('div');
+                card.className = `glass-panel p-6 rounded-2xl flex flex-col justify-between border transition-all ${isDone ? 'border-green-500/40 bg-green-500/5' : 'border-gray-800 hover:border-neonred/40'}`;
+
+                let stepsHtml = ex.steps.map(s => `<li class="text-xs text-gray-300 flex items-start gap-2"><span class="text-neonred font-bold">•</span><span>${s}</span></li>`).join('');
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="font-extrabold text-white text-base flex items-center gap-2">🧘 ${ex.name}</h3>
+                            <span class="text-xs px-2.5 py-1 rounded-full bg-cardbg border border-gray-700 text-gray-300 font-semibold">${ex.time}</span>
+                        </div>
+                        <p class="text-xs text-neonred font-semibold mb-2">Objetivo: ${ex.goal}</p>
+                        <div class="space-y-1.5 my-3 bg-cardbg/50 p-3.5 rounded-xl border border-gray-800">
+                            <p class="text-xs font-bold text-gray-400 uppercase">Instruções:</p>
+                            <ul class="space-y-1">${stepsHtml}</ul>
+                        </div>
+                        <p class="text-xs text-yellow-500/90 italic mb-4">⚠️ Cuidados: ${ex.precautions}</p>
+                    </div>
+                    <div class="pt-3 border-t border-gray-800/80 flex items-center justify-between">
+                        <span class="text-xs text-gray-400">${isDone ? '✅ Concluído hoje' : 'Pendente'}</span>
+                        <button onclick="toggleMobility('${ex.id}')" class="px-4 py-2.5 rounded-xl font-semibold text-xs transition-all ${isDone ? 'bg-cardbg border border-gray-700 text-gray-300' : 'bg-gradient-to-r from-neonred to-red-700 text-white shadow-neon'}">
+                            ${isDone ? 'Desfazer' : 'Marcar Concluído'}
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function toggleMobility(exId) {
+            const data = loadAppData();
+            if (!data.mobilityDone[currentRoutineDate]) data.mobilityDone[currentRoutineDate] = [];
+            const list = data.mobilityDone[currentRoutineDate];
+
+            if (list.includes(exId)) {
+                data.mobilityDone[currentRoutineDate] = list.filter(id => id !== exId);
+                showToast('Exercício desmarcado.');
+            } else {
+                data.mobilityDone[currentRoutineDate].push(exId);
+                showToast('Exercício de mobilidade concluído! 🧘');
+                // Also mark task 5 as complete if desired
+                if (!data.completedTasks[currentRoutineDate]) data.completedTasks[currentRoutineDate] = [];
+                if (!data.completedTasks[currentRoutineDate].includes(5)) {
+                    data.completedTasks[currentRoutineDate].push(5);
+                }
+            }
+            saveAppData(data);
+            renderMobility();
+            checkAndAwardAchievements();
+        }
+
+        // --- EVOLUTION RENDER ---
+        function renderEvolution() {
+            const data = loadAppData();
+
+            // Total tasks completed
+            let totalTasksCount = 0;
+            Object.values(data.completedTasks).forEach(arr => {
+                totalTasksCount += arr.length;
+            });
+            document.getElementById('evo-total-tasks').textContent = totalTasksCount;
+
+            // Current streak
+            const streak = calculateCurrentStreak(data.completedTasks);
+            document.getElementById('evo-streak').textContent = `${streak} dias`;
+
+            // Best streak (mock/simple estimation or max streak)
+            document.getElementById('evo-best-streak').textContent = `${Math.max(streak, totalTasksCount > 0 ? 1 : 0)} dias`;
+
+            // Average sleep
+            const sleepValues = Object.values(data.sleepLogs).map(s => s.hours);
+            if (sleepValues.length > 0) {
+                const avg = (sleepValues.reduce((a, b) => a + b, 0) / sleepValues.length).toFixed(1);
+                document.getElementById('evo-avg-sleep').textContent = `${avg}h`;
+            } else {
+                document.getElementById('evo-avg-sleep').textContent = '0h';
+            }
+
+            // Sleep history list
+            const sleepListContainer = document.getElementById('evo-sleep-history-list');
+            sleepListContainer.innerHTML = '';
+            const sleepKeys = Object.keys(data.sleepLogs).sort().reverse().slice(0, 5);
+            if (sleepKeys.length === 0) {
+                sleepListContainer.innerHTML = `<p class="text-sm text-gray-400">Nenhum registro de sono encontrado ainda.</p>`;
+            } else {
+                sleepKeys.forEach(date => {
+                    const log = data.sleepLogs[date];
+                    const div = document.createElement('div');
+                    div.className = 'glass-panel p-3.5 rounded-xl flex items-center justify-between text-sm';
+                    div.innerHTML = `
+                        <span class="text-gray-300 font-semibold">${date}</span>
+                        <div class="flex items-center gap-3">
+                            <span class="text-indigo-400 font-bold">${log.hours}h</span>
+                            <span class="text-xs px-2.5 py-1 rounded-full bg-cardbg border border-gray-700 text-gray-400">${log.quality}</span>
+                        </div>
+                    `;
+                    sleepListContainer.appendChild(div);
+                });
+            }
+
+            // Water history list
+            const waterListContainer = document.getElementById('evo-water-history-list');
+            waterListContainer.innerHTML = '';
+            const waterKeys = Object.keys(data.waterLogs).sort().reverse().slice(0, 5);
+            if (waterKeys.length === 0) {
+                waterListContainer.innerHTML = `<p class="text-sm text-gray-400">Nenhum registro de hidratação encontrado ainda.</p>`;
+            } else {
+                waterKeys.forEach(date => {
+                    const ml = data.waterLogs[date];
+                    const div = document.createElement('div');
+                    div.className = 'glass-panel p-3.5 rounded-xl flex items-center justify-between text-sm';
+                    div.innerHTML = `
+                        <span class="text-gray-300 font-semibold">${date}</span>
+                        <span class="text-cyan-400 font-bold">${ml} ml</span>
+                    `;
+                    waterListContainer.appendChild(div);
+                });
+            }
+        }
+
+        // --- ACHIEVEMENTS SYSTEM ---
+        const ACHIEVEMENTS_DEF = [
+            { id: 'first_day', name: 'Primeiro Dia', desc: 'Registrou atividades pela primeira vez.', emoji: '🌱', check: (d) => Object.keys(d.completedTasks).length > 0 },
+            { id: 'streak_3', name: 'Consistência de Fogo', desc: 'Alcançou 3 dias de sequência.', emoji: '🔥', check: (d) => calculateCurrentStreak(d.completedTasks) >= 3 },
+            { id: 'tasks_10', name: 'Dedicado', desc: 'Completou 10 tarefas no total.', emoji: '💪', check: (d) => {
+                let total = 0;
+                Object.values(d.completedTasks).forEach(arr => total += arr.length);
+                return total >= 10;
+            }},
+            { id: 'sleep_logged', name: 'Descanso em Dia', desc: 'Registrou o sono com sucesso.', emoji: '💤', check: (d) => Object.keys(d.sleepLogs).length > 0 },
+            { id: 'water_master', name: 'Hidratação Ativa', desc: 'Registrou hidratação no painel.', emoji: '💧', check: (d) => Object.keys(d.waterLogs).length > 0 }
+        ];
+
+        function checkAndAwardAchievements() {
+            const data = loadAppData();
+            let unlocked = data.achievements || [];
+            let newlyUnlocked = false;
+
+            ACHIEVEMENTS_DEF.forEach(ach => {
+                if (!unlocked.includes(ach.id) && ach.check(data)) {
+                    unlocked.push(ach.id);
+                    newlyUnlocked = true;
+                    showToast(`🏆 Conquista Desbloqueada: ${ach.name}!`);
+                }
+            });
+
+            if (newlyUnlocked) {
+                data.achievements = unlocked;
+                saveAppData(data);
+            }
+        }
+
+        function renderAchievements() {
+            const data = loadAppData();
+            const container = document.getElementById('achievements-grid');
+            container.innerHTML = '';
+
+            const unlocked = data.achievements || [];
+
+            ACHIEVEMENTS_DEF.forEach(ach => {
+                const isUnlocked = unlocked.includes(ach.id);
+                const card = document.createElement('div');
+                card.className = `glass-panel p-6 rounded-2xl flex items-center gap-4 border transition-all ${isUnlocked ? 'border-neonred/50 shadow-neon bg-cardbg' : 'border-gray-800 opacity-50'}`;
+
+                card.innerHTML = `
+                    <div class="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl ${isUnlocked ? 'bg-neonred/20 border border-neonred/40 text-neonred' : 'bg-gray-800 text-gray-500'}">
+                        ${ach.emoji}
+                    </div>
+                    <div>
+                        <h4 class="font-extrabold text-white text-base">${ach.name}</h4>
+                        <p class="text-xs text-gray-400 mt-1">${ach.desc}</p>
+                        <span class="inline-block mt-2 text-xs font-semibold px-2.5 py-0.5 rounded-full ${isUnlocked ? 'bg-neonred/20 text-neonred border border-neonred/30' : 'bg-gray-800 text-gray-500'}">
+                            ${isUnlocked ? 'Desbloqueada ⭐' : 'Bloqueada 🔒'}
+                        </span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // --- PROFILE FORM CONTROLS ---
+        function renderProfileForm() {
+            const data = loadAppData();
+            const p = data.profile || {};
+            document.getElementById('profile-name').value = data.userName || p.name || '';
+            document.getElementById('profile-age').value = p.age || '';
+            document.getElementById('profile-height').value = p.height || '';
+            document.getElementById('profile-weight').value = p.weight || '';
+            document.getElementById('profile-goals').value = p.goals || '';
+            document.getElementById('profile-sleep-time').value = p.sleepTime || '';
+            document.getElementById('profile-wake-time').value = p.wakeTime || '';
+        }
+
+        function saveProfile(e) {
+            e.preventDefault();
+            const name = document.getElementById('profile-name').value.trim();
+            const age = document.getElementById('profile-age').value.trim();
+            const height = document.getElementById('profile-height').value.trim();
+            const weight = document.getElementById('profile-weight').value.trim();
+            const goals = document.getElementById('profile-goals').value.trim();
+            const sleepTime = document.getElementById('profile-sleep-time').value;
+            const wakeTime = document.getElementById('profile-wake-time').value;
+
+            const data = loadAppData();
+            data.userName = name;
+            data.profile = { age, height, weight, goals, sleepTime, wakeTime };
+            saveAppData(data);
+
+            updateWelcomeBanner(name);
+            showToast('Perfil salvo com sucesso! 💾');
+        }
+
+        function clearAllData() {
+            if (confirm('Tem certeza de que deseja apagar todos os dados salvos neste navegador? Esta ação não pode ser desfeita.')) {
+                localStorage.clear();
+                showToast('Todos os dados foram apagados.');
+                setTimeout(() => window.location.reload(), 1000);
+            }
+        }
+    </script>
+</body>
+</html>
